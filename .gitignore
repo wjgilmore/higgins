@@ -1,0 +1,26 @@
+# Secrets and local config
+.env
+.env.local
+
+# Per-skill user config and data
+skills/calendar/calendars.json
+skills/calendar/data/
+!skills/calendar/data/.gitkeep
+skills/*/config.json
+
+# Runtime data
+data/schedules.json
+data/notes.txt
+data/history/
+
+# Logs
+logs/
+*.log
+
+# Node / OS
+node_modules/
+.DS_Store
+
+# launchd (generated from templates at install time)
+launchd/*.plist
+!launchd/*.plist.tpl

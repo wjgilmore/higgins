@@ -1,0 +1,12 @@
+{
+  "calendars": [
+    {
+      "name": "family",
+      "url": "https://calendar.google.com/calendar/ical/you%40example.com/private-abc123/basic.ics"
+    },
+    {
+      "name": "work",
+      "url": "https://calendar.google.com/calendar/ical/you%40example.com/private-xyz789/basic.ics"
+    }
+  ]
+}

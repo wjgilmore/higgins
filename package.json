@@ -1,0 +1,34 @@
+{
+  "name": "higgins",
+  "version": "0.1.0",
+  "description": "A personal AI agent with pluggable skills, Telegram interface, and local Ollama",
+  "type": "module",
+  "main": "index.mjs",
+  "bin": {
+    "higgins": "./bin/higgins.mjs"
+  },
+  "scripts": {
+    "start": "node index.mjs",
+    "setup": "node bin/higgins.mjs setup",
+    "doctor": "node bin/higgins.mjs doctor"
+  },
+  "author": "wjgilmore",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wjgilmore/higgins.git"
+  },
+  "homepage": "https://github.com/wjgilmore/higgins#readme",
+  "bugs": {
+    "url": "https://github.com/wjgilmore/higgins/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ical.js": "^2.2.1",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}

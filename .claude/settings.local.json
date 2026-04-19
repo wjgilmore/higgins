@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/samg/calendars/**)",
+      "Bash(ollama list *)",
+      "Bash(npm install *)",
+      "Bash(node src/ollama.mjs)",
+      "Bash(node /Users/samg/calendars/cal-query.mjs --date 2026-04-17 --json)",
+      "Bash(timeout 8 node index.mjs)",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(curl -s \"https://api.zippopotam.us/us/10001\")",
+      "Bash(curl -s \"https://api.open-meteo.com/v1/forecast?latitude=40.75&longitude=-73.99&daily=temperature_2m_max,temperature_2m_min,weather_code&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto&forecast_days=2\")",
+      "Bash(node -e ' *)",
+      "Bash(rm -rf /tmp/higgins-notes-test)",
+      "Bash(rm -rf /tmp/higgins-notes-del)",
+      "Bash(rm -rf /tmp/higgins-notes-cfm)",
+      "Bash(crontab -l)",
+      "Bash(cp ~/calendars/family.ics ~/higgins/skills/calendar/data/family.ics)",
+      "Bash(cp ~/calendars/adalo.ics ~/higgins/skills/calendar/data/adalo.ics)",
+      "Bash(node ~/higgins/skills/calendar/cal-query.mjs --date 2026-04-21 --json)",
+      "Bash(node ~/higgins/skills/calendar/cal-sync.mjs)",
+      "Bash(chmod +x *)",
+      "Bash(node bin/higgins.mjs help)",
+      "Bash(node bin/higgins.mjs doctor)",
+      "Bash(crontab -r)",
+      "Bash(git check-ignore:*)"
+    ]
+  }
+}
