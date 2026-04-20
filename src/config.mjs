@@ -33,6 +33,7 @@ export const config = Object.freeze({
   ollama: {
     url: (process.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, ""),
     model: process.env.OLLAMA_MODEL ?? "gemma4:latest",
+    apiFormat: process.env.OLLAMA_API_FORMAT ?? "auto",
   },
   higgins: {
     name: process.env.HIGGINS_NAME ?? "Higgins",

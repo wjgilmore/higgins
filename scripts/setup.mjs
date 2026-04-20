@@ -43,16 +43,17 @@ export async function run(root) {
   }
 
   const ollamaUrl = existing.OLLAMA_URL ?? "http://localhost:11434";
-  const ollamaResult = await ollamaReachable(ollamaUrl);
+  const apiFormat = existing.OLLAMA_API_FORMAT ?? "auto";
+  const ollamaResult = await ollamaReachable(ollamaUrl, apiFormat);
   if (!ollamaResult.ok) {
-    console.log(`✗ Ollama not reachable at ${ollamaUrl}: ${ollamaResult.error}`);
+    console.log(`✗ LLM server not reachable at ${ollamaUrl}: ${ollamaResult.error}`);
     console.log(
-      `  Install Ollama from https://ollama.com and start it, then re-run \`higgins setup\`.`,
+      `  Install Ollama from https://ollama.com, or point OLLAMA_URL to an OpenAI-compatible server.`,
     );
     p.close();
     process.exit(1);
   }
-  console.log(`✓ Ollama reachable (${ollamaResult.models.length} models)`);
+  console.log(`✓ LLM reachable at ${ollamaUrl} (${ollamaResult.detectedFormat} API, ${ollamaResult.models.length} models)`);
 
   // --- Telegram ---
   console.log(`\n--- Telegram ---`);
@@ -97,9 +98,13 @@ export async function run(root) {
 
   if (ollamaResult.models.length && !ollamaResult.models.includes(model)) {
     console.log(
-      `  ! Model "${model}" not found in Ollama. Available: ${ollamaResult.models.join(", ")}`,
+      `  ! Model "${model}" not found. Available: ${ollamaResult.models.join(", ")}`,
     );
-    console.log(`    Run \`ollama pull ${model}\` before starting Higgins.`);
+    if (ollamaResult.detectedFormat === "ollama") {
+      console.log(`    Run \`ollama pull ${model}\` before starting Higgins.`);
+    } else {
+      console.log(`    Make sure the model is loaded on your OpenAI-compatible server.`);
+    }
   }
 
   // --- Skills ---
@@ -129,6 +134,7 @@ export async function run(root) {
     TELEGRAM_PRIMARY_USER_ID: primary,
     OLLAMA_URL: ollamaUrl,
     OLLAMA_MODEL: model,
+    OLLAMA_API_FORMAT: apiFormat,
     HIGGINS_NAME: name,
     HIGGINS_TIMEZONE: timezone,
     HIGGINS_HISTORY_TURNS: existing.HIGGINS_HISTORY_TURNS ?? "10",

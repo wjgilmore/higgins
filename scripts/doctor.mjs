@@ -42,12 +42,13 @@ export async function run(root) {
   status(true, `Platform: ${IS_MACOS ? "macOS" : IS_LINUX ? "Linux" : platform()}`);
 
   const ollamaUrl = env.OLLAMA_URL ?? "http://localhost:11434";
-  const ol = await ollamaReachable(ollamaUrl);
-  status(ol.ok, `Ollama reachable at ${ollamaUrl}${ol.ok ? "" : ` (${ol.error})`}`);
+  const apiFormat = env.OLLAMA_API_FORMAT ?? "auto";
+  const ol = await ollamaReachable(ollamaUrl, apiFormat);
+  status(ol.ok, `LLM reachable at ${ollamaUrl}${ol.ok ? ` (${ol.detectedFormat} API)` : ` (${ol.error})`}`);
   if (ol.ok) {
     const model = env.OLLAMA_MODEL ?? "gemma4:latest";
     const hasModel = ol.models.includes(model);
-    status(hasModel, `Model "${model}" available in Ollama${hasModel ? "" : ` — run 'ollama pull ${model}'`}`);
+    status(hasModel, `Model "${model}" available${hasModel ? "" : ` — available models: ${ol.models.join(", ")}`}`);
   }
 
   if (env.TELEGRAM_BOT_TOKEN) {
