@@ -58,18 +58,28 @@ if [ "$NODE_MAJOR" -lt 20 ]; then
 fi
 green "✓ Node.js $(node -v)"
 
-# --- Ollama ---
-require_cmd ollama "Install Ollama from https://ollama.com"
-if ! ollama list >/dev/null 2>&1; then
-  red "✗ Ollama is installed but not running."
-  if [[ "$OS" == "Darwin" ]]; then
-    red "   Start it with: open -a Ollama    (or run 'ollama serve' in another terminal)"
-  else
-    red "   Start it with: systemctl start ollama    (or run 'ollama serve' in another terminal)"
+# --- LLM backend ---
+# Ollama is checked by default, but users can skip this with HIGGINS_SKIP_OLLAMA=1
+# if they plan to use an OpenAI-compatible server (llama.cpp, vLLM, LM Studio, etc.)
+if [[ "${HIGGINS_SKIP_OLLAMA:-}" == "1" ]]; then
+  blue "⊘ Skipping Ollama check (HIGGINS_SKIP_OLLAMA=1)"
+  blue "  Make sure your LLM server is running and set OLLAMA_URL in the setup wizard."
+elif command -v ollama >/dev/null 2>&1; then
+  if ! ollama list >/dev/null 2>&1; then
+    red "✗ Ollama is installed but not running."
+    if [[ "$OS" == "Darwin" ]]; then
+      red "   Start it with: open -a Ollama    (or run 'ollama serve' in another terminal)"
+    else
+      red "   Start it with: systemctl start ollama    (or run 'ollama serve' in another terminal)"
+    fi
+    red "   Or set HIGGINS_SKIP_OLLAMA=1 if using a different LLM server."
+    exit 1
   fi
-  exit 1
+  green "✓ Ollama running"
+else
+  blue "⊘ Ollama not found — that's OK if you're using another LLM server (llama.cpp, vLLM, etc.)"
+  blue "  Set OLLAMA_URL to your server's address during setup."
 fi
-green "✓ Ollama running"
 
 # --- Clone ---
 step "Cloning Higgins to $INSTALL_DIR"

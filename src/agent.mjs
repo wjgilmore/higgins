@@ -122,7 +122,7 @@ If no tool is needed, just reply in natural language (no JSON).`;
       for (const call of calls) {
         const result = await this.runSkill(call, userId);
         const toolMsg = useNative
-          ? { role: "tool", name: call.name, content: result }
+          ? { role: "tool", ...(call.id && { tool_call_id: call.id }), name: call.name, content: result }
           : { role: "user", content: `[tool:${call.name} result]\n${result}` };
         messages.push(toolMsg);
         transcript.push(toolMsg);
@@ -135,6 +135,7 @@ If no tool is needed, just reply in natural language (no JSON).`;
     if (useNative) {
       const calls = msg.tool_calls ?? [];
       return calls.map((c) => ({
+        id: c.id,   // present on OpenAI-compat, undefined on Ollama (harmless)
         name: c.function?.name ?? c.name,
         args: c.function?.arguments ?? c.arguments ?? {},
       }));

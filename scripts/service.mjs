@@ -181,9 +181,10 @@ export async function logs(root, kind = "app") {
       ? resolve(root, "logs/calsync.log")
       : resolve(root, "logs/higgins.log");
 
-  // On Linux with systemd, prefer journalctl for live logs
-  if (IS_LINUX && kind !== "calsync") {
-    const child = spawn("journalctl", ["--user", "-u", UNIT_APP, "-f", "--no-pager"], {
+  // On Linux with systemd, use journalctl for live logs
+  if (IS_LINUX) {
+    const unit = kind === "calsync" ? UNIT_SYNC : UNIT_APP;
+    const child = spawn("journalctl", ["--user", "-u", unit, "-f", "--no-pager"], {
       stdio: "inherit",
     });
     process.on("SIGINT", () => child.kill("SIGINT"));

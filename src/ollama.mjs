@@ -95,6 +95,8 @@ export class Ollama {
     // Ollama returns them as an object. Standardize to parsed objects.
     if (Array.isArray(msg.tool_calls)) {
       msg.tool_calls = msg.tool_calls.map((tc) => ({
+        ...(tc.id && { id: tc.id }),           // preserve for OpenAI-compat
+        ...(tc.type && { type: tc.type }),      // preserve "function" type tag
         function: {
           name: tc.function?.name,
           arguments: typeof tc.function?.arguments === "string"
