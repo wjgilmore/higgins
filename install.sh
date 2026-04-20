@@ -27,20 +27,34 @@ require_cmd() {
 step "Higgins installer"
 
 # --- OS check ---
-if [[ "$(uname)" != "Darwin" ]]; then
-  fail "Higgins currently supports macOS only."
-fi
-green "✓ macOS"
+OS="$(uname)"
+case "$OS" in
+  Darwin) green "✓ macOS" ;;
+  Linux)  green "✓ Linux" ;;
+  *)      fail "Unsupported OS: $OS. Higgins supports macOS and Linux." ;;
+esac
 
 # --- git ---
-require_cmd git "Install with: xcode-select --install"
+if [[ "$OS" == "Darwin" ]]; then
+  require_cmd git "Install with: xcode-select --install"
+else
+  require_cmd git "Install with: sudo apt install git  (or your package manager)"
+fi
 green "✓ git"
 
 # --- Node ---
-require_cmd node "Install with: brew install node  (or download from https://nodejs.org)"
+if [[ "$OS" == "Darwin" ]]; then
+  require_cmd node "Install with: brew install node  (or download from https://nodejs.org)"
+else
+  require_cmd node "Install with: sudo apt install nodejs  (or download from https://nodejs.org)"
+fi
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 if [ "$NODE_MAJOR" -lt 20 ]; then
-  fail "Node.js 20+ required (found v$(node -v | sed 's/^v//')). Upgrade: brew upgrade node"
+  if [[ "$OS" == "Darwin" ]]; then
+    fail "Node.js 20+ required (found v$(node -v | sed 's/^v//')). Upgrade: brew upgrade node"
+  else
+    fail "Node.js 20+ required (found v$(node -v | sed 's/^v//')). See https://nodejs.org for install instructions."
+  fi
 fi
 green "✓ Node.js $(node -v)"
 
@@ -48,7 +62,11 @@ green "✓ Node.js $(node -v)"
 require_cmd ollama "Install Ollama from https://ollama.com"
 if ! ollama list >/dev/null 2>&1; then
   red "✗ Ollama is installed but not running."
-  red "   Start it with: open -a Ollama    (or run 'ollama serve' in another terminal)"
+  if [[ "$OS" == "Darwin" ]]; then
+    red "   Start it with: open -a Ollama    (or run 'ollama serve' in another terminal)"
+  else
+    red "   Start it with: systemctl start ollama    (or run 'ollama serve' in another terminal)"
+  fi
   exit 1
 fi
 green "✓ Ollama running"

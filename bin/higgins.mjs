@@ -16,8 +16,8 @@ Commands:
   doctor               Check system prerequisites and connectivity
   config calendar      Add, remove, or list calendar URLs
   config skills        Enable or disable skills
-  install-service      Install launchd agents (Higgins + calendar sync)
-  uninstall-service    Remove launchd agents
+  install-service      Install background services (launchd on macOS, systemd on Linux)
+  uninstall-service    Remove background services
   logs [kind]          Tail logs ('app' or 'calsync'; default 'app')
   help                 Show this help
 

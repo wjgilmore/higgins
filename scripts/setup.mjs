@@ -190,10 +190,10 @@ export async function run(root) {
 
   // --- Service install ---
   console.log(`\n--- Background service ---`);
-  const installSvc = await p.confirm(
-    "Install launchd agents so Higgins starts at login and calendars sync each morning?",
-    { default: true },
-  );
+  const svcDesc = process.platform === "darwin"
+    ? "Install launchd agents so Higgins starts at login and calendars sync each morning?"
+    : "Install systemd user services so Higgins starts at login and calendars sync each morning?";
+  const installSvc = await p.confirm(svcDesc, { default: true });
   if (installSvc) {
     const res = spawnSync(
       "node",
