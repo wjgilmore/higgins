@@ -24,7 +24,7 @@ Higgins is single-user, local-first, and MIT-licensed.
 
 ## Requirements
 
-- **macOS** (Linux support is planned; PRs welcome)
+- macOS or Linux
 - **Node.js 20+** — `brew install node`
 - **A local LLM backend** (pick one):
   - **Ollama** — install from <https://ollama.com>, then pull a chat model that supports tool-calling, e.g. `ollama pull gemma3:latest` (Higgins defaults to `gemma4:latest`)
