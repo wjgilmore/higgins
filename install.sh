@@ -1,17 +1,17 @@
 #!/bin/bash
 #
 # Higgins installer. Usage:
-#   curl -fsSL https://raw.githubusercontent.com/wjgilmore/higgins/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/wjgilmore/higgins/master/install.sh | bash
 #
 # Environment variables:
 #   HIGGINS_DIR     Install destination (default: $HOME/higgins)
-#   HIGGINS_BRANCH  Git branch to check out (default: main)
+#   HIGGINS_BRANCH  Git branch to check out (default: master)
 #   HIGGINS_REPO    Git repo URL (default: https://github.com/wjgilmore/higgins.git)
 
 set -euo pipefail
 
 REPO="${HIGGINS_REPO:-https://github.com/wjgilmore/higgins.git}"
-BRANCH="${HIGGINS_BRANCH:-main}"
+BRANCH="${HIGGINS_BRANCH:-master}"
 INSTALL_DIR="${HIGGINS_DIR:-$HOME/higgins}"
 
 blue()  { printf "\033[1;34m%s\033[0m\n" "$*"; }
@@ -103,9 +103,9 @@ echo
 green "✓ Higgins installed to $INSTALL_DIR"
 echo
 echo "Useful commands:"
-echo "  higgins doctor              — check your config"
-echo "  higgins logs                — tail the agent log"
-echo "  higgins uninstall-service   — stop the background service"
+echo "  node bin/higgins.mjs doctor              — check your config"
+echo "  node bin/higgins.mjs logs                — tail the agent log"
+echo "  node bin/higgins.mjs uninstall-service   — stop the background service"
 echo
 echo "If you skipped service install, start Higgins with:"
-echo "  cd $INSTALL_DIR && node index.mjs"
+echo "  cd $INSTALL_DIR && npm start"
