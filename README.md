@@ -34,7 +34,7 @@ Higgins is single-user, local-first, and MIT-licensed.
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wjgilmore/higgins/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wjgilmore/higgins/master/install.sh | bash
 ```
 
 The installer will:
@@ -80,34 +80,34 @@ Config lives in `~/higgins/.env`:
 | `HIGGINS_HISTORY_TURNS`     | Chat history turns kept per user                                   | `10`                     |
 | `HIGGINS_SKILLS`            | Comma-separated list of enabled skills; empty = all present skills | `calendar,notes,schedule,weather` |
 
-Re-run the wizard any time with `higgins setup`, or edit `.env` directly.
+Re-run the wizard any time with `node bin/higgins.mjs setup`, or edit `.env` directly.
 
 ### Calendar URLs
 
 The calendar skill reads `.ics` files under `skills/calendar/data/`, refreshed daily by `skills/calendar/cal-sync.mjs`. To add Google Calendars:
 
 1. In Google Calendar, open the calendar's settings, scroll to **"Secret address in iCal format"** and copy the URL.
-2. Run `higgins config calendar` and paste the URL.
+2. Run `node bin/higgins.mjs config calendar` and paste the URL.
 
 Calendar URLs live in `skills/calendar/calendars.json`, which is **gitignored** so your private URLs don't get committed.
 
 ### Enabling/disabling skills
 
 ```bash
-higgins config skills
+node bin/higgins.mjs config skills
 ```
 
 ## CLI
 
 ```text
-higgins setup              Run the setup wizard
-higgins start              Start Higgins in the foreground
-higgins doctor             Check system prereqs and connectivity
-higgins config calendar    Manage calendar URLs
-higgins config skills      Enable/disable skills
-higgins install-service    Install launchd agents
-higgins uninstall-service  Remove launchd agents
-higgins logs [app|calsync] Tail a log file
+node bin/higgins.mjs setup              Run the setup wizard
+node bin/higgins.mjs start              Start Higgins in the foreground
+node bin/higgins.mjs doctor             Check system prereqs and connectivity
+node bin/higgins.mjs config calendar    Manage calendar URLs
+node bin/higgins.mjs config skills      Enable/disable skills
+node bin/higgins.mjs install-service    Install launchd agents
+node bin/higgins.mjs uninstall-service  Remove launchd agents
+node bin/higgins.mjs logs [app|calsync] Tail a log file
 ```
 
 ## Adding a custom skill
@@ -133,7 +133,7 @@ export default {
 };
 ```
 
-3. Add `myskill` to `HIGGINS_SKILLS` in `.env` (or run `higgins config skills`).
+3. Add `myskill` to `HIGGINS_SKILLS` in `.env` (or run `node bin/higgins.mjs config skills`).
 4. Restart Higgins.
 
 The string your handler returns is what the LLM sees as the tool result. Return JSON strings for structured data or plain text for simple cases. Throw on errors — Higgins will surface the message to the model.
@@ -143,7 +143,7 @@ Skills can read their own config files from `ctx.skillDir` (that's where the cal
 ## Running as a background service
 
 ```bash
-higgins install-service
+node bin/higgins.mjs install-service
 ```
 
 Installs two `launchd` agents to `~/Library/LaunchAgents/`:
@@ -151,19 +151,19 @@ Installs two `launchd` agents to `~/Library/LaunchAgents/`:
 - `com.higgins.app` — Higgins itself, starts at login, auto-restarts on crash.
 - `com.higgins.calsync` — calendar sync, runs daily at 6 AM.
 
-Logs land in `~/higgins/logs/`. Tail with `higgins logs` or `higgins logs calsync`.
+Logs land in `~/higgins/logs/`. Tail with `node bin/higgins.mjs logs` or `node bin/higgins.mjs logs calsync`.
 
-To stop: `higgins uninstall-service`.
+To stop: `node bin/higgins.mjs uninstall-service`.
 
 > **macOS note:** The first time the calendar sync runs, macOS may ask you to grant Full Disk Access. Open System Settings → Privacy & Security → Full Disk Access → press `+`, then `⌘⇧G` and type `/usr/sbin/cron` — approve.
 
 ## Troubleshooting
 
-Run `higgins doctor` first — it'll catch most config issues.
+Run `node bin/higgins.mjs doctor` first — it'll catch most config issues.
 
 - **"tool-calling for gemma4:latest: false"** — your model doesn't expose tool-calls in its chat template. Try `gemma3:latest`, `qwen2.5:latest`, or `llama3.2:latest`.
 - **"API key required" (oMLX)** — set `LLM_API_KEY` in `.env`. Find the key in the oMLX menu bar icon > Settings.
-- **Telegram bot doesn't respond** — check `higgins logs` for errors. Most likely: wrong token, or your user ID isn't in `TELEGRAM_ALLOWED_USER_IDS`.
+- **Telegram bot doesn't respond** — check `node bin/higgins.mjs logs` for errors. Most likely: wrong token, or your user ID isn't in `TELEGRAM_ALLOWED_USER_IDS`.
 - **Scheduled reminders don't fire** — Higgins must be running at the fire time (as a `launchd` agent, or in a terminal).
 - **Morning digest is stale** — check `~/higgins/logs/calsync.log` and `skills/calendar/calendars.json`.
 
@@ -195,7 +195,7 @@ higgins/
 If you have the `launchd` service installed, stop it first so you don't have two instances fighting over the Telegram bot:
 
 ```bash
-higgins uninstall-service
+node bin/higgins.mjs uninstall-service
 ```
 
 Then run Higgins directly in your terminal:
@@ -209,7 +209,7 @@ This lets you see output in real-time and restart with `Ctrl+C` after making cha
 When you're done developing, re-enable the background service:
 
 ```bash
-higgins install-service
+node bin/higgins.mjs install-service
 ```
 
 ## Contributing
