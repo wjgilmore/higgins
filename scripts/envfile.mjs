@@ -28,9 +28,15 @@ TELEGRAM_BOT_TOKEN=${values.TELEGRAM_BOT_TOKEN ?? ""}
 TELEGRAM_ALLOWED_USER_IDS=${values.TELEGRAM_ALLOWED_USER_IDS ?? ""}
 TELEGRAM_PRIMARY_USER_ID=${values.TELEGRAM_PRIMARY_USER_ID ?? ""}
 
-# --- Ollama ---
-OLLAMA_URL=${values.OLLAMA_URL ?? "http://localhost:11434"}
-OLLAMA_MODEL=${values.OLLAMA_MODEL ?? "gemma4:latest"}
+# --- LLM ---
+# Backend: "ollama" or "mlx" (MLX requires macOS with Apple Silicon)
+LLM_BACKEND=${values.LLM_BACKEND ?? "ollama"}
+LLM_URL=${values.LLM_URL ?? "http://localhost:11434"}
+LLM_MODEL=${values.LLM_MODEL ?? "gemma4:latest"}
+# API key (required for oMLX, optional for other backends)
+LLM_API_KEY=${values.LLM_API_KEY ?? ""}
+# API format: "ollama" (native), "openai" (OpenAI-compatible), or "auto" (detect)
+LLM_API_FORMAT=${values.LLM_API_FORMAT ?? "auto"}
 
 # --- Higgins ---
 HIGGINS_NAME=${values.HIGGINS_NAME ?? "Higgins"}

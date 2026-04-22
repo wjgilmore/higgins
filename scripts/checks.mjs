@@ -1,10 +1,12 @@
-export async function ollamaReachable(url, apiFormat = "auto") {
+export async function ollamaReachable(url, apiFormat = "auto", apiKey = "") {
   const format = apiFormat.toLowerCase();
+  const headers = apiKey ? { authorization: `Bearer ${apiKey}` } : {};
 
   // Try Ollama native
   if (format === "ollama" || format === "auto") {
     try {
       const res = await fetch(`${url}/api/tags`, {
+        headers,
         signal: AbortSignal.timeout(3000),
       });
       if (res.ok) {
@@ -21,6 +23,7 @@ export async function ollamaReachable(url, apiFormat = "auto") {
   if (format === "openai" || format === "auto") {
     try {
       const res = await fetch(`${url}/v1/models`, {
+        headers,
         signal: AbortSignal.timeout(3000),
       });
       if (res.ok) {

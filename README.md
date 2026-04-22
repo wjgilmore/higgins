@@ -1,13 +1,13 @@
 # Higgins
 
-A personal AI agent that lives on your Mac, talks to you through Telegram, uses a local [Ollama](https://ollama.com) model, and runs pluggable skills. Think of it as a butler you drop new tricks into by adding a directory.
+A personal AI agent that lives on your Mac, talks to you through Telegram, uses a local LLM via [Ollama](https://ollama.com) or [oMLX](https://omlx.com), and runs pluggable skills. Think of it as a butler you drop new tricks into by adding a directory.
 
 Higgins is single-user, local-first, and MIT-licensed.
 
 ## Features
 
 - **Telegram chat interface** — talk to Higgins from anywhere your phone is.
-- **Local LLM via Ollama** — no API keys, no usage fees, no data leaving your machine.
+- **Local LLM via Ollama or oMLX** — no usage fees, no data leaving your machine.
 - **Pluggable skills** — one directory per skill, auto-discovered at boot.
 - **Scheduler** — ask Higgins in plain English to remind you at 5pm, every morning at 7, or in two hours.
 - **Built-in skills** — calendar, weather, notes, schedule. Enable just the ones you want.
@@ -26,7 +26,9 @@ Higgins is single-user, local-first, and MIT-licensed.
 
 - **macOS** (Linux support is planned; PRs welcome)
 - **Node.js 20+** — `brew install node`
-- **Ollama running locally** — install from <https://ollama.com>, then pull a chat model that supports tool-calling, e.g. `ollama pull gemma3:latest` (Higgins defaults to `gemma4:latest`; change via `OLLAMA_MODEL`)
+- **A local LLM backend** (pick one):
+  - **Ollama** — install from <https://ollama.com>, then pull a chat model that supports tool-calling, e.g. `ollama pull gemma3:latest` (Higgins defaults to `gemma4:latest`)
+  - **oMLX** — install from <https://omlx.com> (macOS with Apple Silicon only). Download a model in the oMLX app, then grab your API key from the oMLX menu bar icon > Settings.
 - **A Telegram bot** — see [Telegram setup](#telegram-setup) below
 
 ## Install
@@ -37,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/wjgilmore/higgins/main/install.sh |
 
 The installer will:
 
-1. Verify macOS, Node 20+, and a running Ollama.
+1. Verify macOS, Node 20+, and a running LLM backend (Ollama or oMLX).
 2. Clone Higgins to `~/higgins` (override with `HIGGINS_DIR=...`).
 3. `npm install`.
 4. Run the setup wizard to collect your Telegram token, user ID, skills, and calendar URLs.
@@ -63,16 +65,19 @@ node bin/higgins.mjs setup
 
 Config lives in `~/higgins/.env`:
 
-| Variable                    | Description                                                        | Default              |
-| --------------------------- | ------------------------------------------------------------------ | -------------------- |
-| `TELEGRAM_BOT_TOKEN`        | Bot token from @BotFather                                          | *(required)*         |
-| `TELEGRAM_ALLOWED_USER_IDS` | Comma-separated Telegram user IDs allowed to chat                  | *(required)*         |
-| `TELEGRAM_PRIMARY_USER_ID`  | Target for scheduled messages                                      | *(required)*         |
-| `OLLAMA_URL`                | Ollama HTTP endpoint                                               | `http://localhost:11434` |
-| `OLLAMA_MODEL`              | Model name                                                         | `gemma4:latest`      |
-| `HIGGINS_NAME`              | What Higgins calls himself                                         | `Higgins`            |
-| `HIGGINS_TIMEZONE`          | IANA timezone for dates/schedules                                  | `America/New_York`   |
-| `HIGGINS_HISTORY_TURNS`     | Chat history turns kept per user                                   | `10`                 |
+| Variable                    | Description                                                        | Default                  |
+| --------------------------- | ------------------------------------------------------------------ | ------------------------ |
+| `TELEGRAM_BOT_TOKEN`        | Bot token from @BotFather                                          | *(required)*             |
+| `TELEGRAM_ALLOWED_USER_IDS` | Comma-separated Telegram user IDs allowed to chat                  | *(required)*             |
+| `TELEGRAM_PRIMARY_USER_ID`  | Target for scheduled messages                                      | *(required)*             |
+| `LLM_BACKEND`               | `ollama` or `mlx`                                                  | `ollama`                 |
+| `LLM_URL`                   | LLM server endpoint                                                | `http://localhost:11434` (Ollama) / `http://localhost:8000` (oMLX) |
+| `LLM_MODEL`                 | Model name                                                         | `gemma4:latest`          |
+| `LLM_API_KEY`               | API key (required for oMLX)                                        |                          |
+| `LLM_API_FORMAT`            | `ollama`, `openai`, or `auto`                                      | `auto`                   |
+| `HIGGINS_NAME`              | What Higgins calls himself                                         | `Higgins`                |
+| `HIGGINS_TIMEZONE`          | IANA timezone for dates/schedules                                  | `America/New_York`       |
+| `HIGGINS_HISTORY_TURNS`     | Chat history turns kept per user                                   | `10`                     |
 | `HIGGINS_SKILLS`            | Comma-separated list of enabled skills; empty = all present skills | `calendar,notes,schedule,weather` |
 
 Re-run the wizard any time with `higgins setup`, or edit `.env` directly.
@@ -157,6 +162,7 @@ To stop: `higgins uninstall-service`.
 Run `higgins doctor` first — it'll catch most config issues.
 
 - **"tool-calling for gemma4:latest: false"** — your model doesn't expose tool-calls in its chat template. Try `gemma3:latest`, `qwen2.5:latest`, or `llama3.2:latest`.
+- **"API key required" (oMLX)** — set `LLM_API_KEY` in `.env`. Find the key in the oMLX menu bar icon > Settings.
 - **Telegram bot doesn't respond** — check `higgins logs` for errors. Most likely: wrong token, or your user ID isn't in `TELEGRAM_ALLOWED_USER_IDS`.
 - **Scheduled reminders don't fire** — Higgins must be running at the fire time (as a `launchd` agent, or in a terminal).
 - **Morning digest is stale** — check `~/higgins/logs/calsync.log` and `skills/calendar/calendars.json`.
@@ -169,7 +175,7 @@ higgins/
 ├── bin/higgins.mjs            CLI dispatcher
 ├── src/
 │   ├── agent.mjs              Tool-use loop
-│   ├── ollama.mjs             Ollama client, tool-call probe
+│   ├── ollama.mjs             LLM client (Ollama + OpenAI-compat), tool-call probe
 │   ├── telegram.mjs           Bot polling + whitelist
 │   ├── scheduler.mjs          node-cron + setTimeout
 │   ├── skills.mjs             Skill auto-loader

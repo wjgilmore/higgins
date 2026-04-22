@@ -10,13 +10,21 @@
  * ({ message: { role, content, tool_calls } }) regardless of backend,
  * so the Agent doesn't need to know which format is in use.
  */
-export class Ollama {
-  constructor({ url, model, apiFormat = "auto" }) {
+export { LLM as Ollama };
+export class LLM {
+  constructor({ url, model, apiFormat = "auto", apiKey = "" }) {
     this.url = url;
     this.model = model;
+    this.apiKey = apiKey;
     this.requestedFormat = apiFormat.toLowerCase();
     this.resolvedFormat = null; // set after first call or probe
     this.supportsTools = null;
+  }
+
+  _headers(extra = {}) {
+    const h = { ...extra };
+    if (this.apiKey) h["authorization"] = `Bearer ${this.apiKey}`;
+    return h;
   }
 
   // --- Format detection ---
@@ -32,6 +40,7 @@ export class Ollama {
     // Auto-detect: try Ollama first (more common), fall back to OpenAI
     try {
       const res = await fetch(`${this.url}/api/tags`, {
+        headers: this._headers(),
         signal: AbortSignal.timeout(3000),
       });
       if (res.ok) {
@@ -42,6 +51,7 @@ export class Ollama {
 
     try {
       const res = await fetch(`${this.url}/v1/models`, {
+        headers: this._headers(),
         signal: AbortSignal.timeout(3000),
       });
       if (res.ok) {
@@ -67,7 +77,7 @@ export class Ollama {
     if (useNative && tools && tools.length > 0) body.tools = tools;
     const res = await fetch(endpoint, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: this._headers({ "content-type": "application/json" }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -118,6 +128,7 @@ export class Ollama {
 
   async _listModelsOllama() {
     const res = await fetch(`${this.url}/api/tags`, {
+      headers: this._headers(),
       signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return [];
@@ -127,6 +138,7 @@ export class Ollama {
 
   async _listModelsOpenAI() {
     const res = await fetch(`${this.url}/v1/models`, {
+      headers: this._headers(),
       signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return [];
@@ -177,9 +189,9 @@ function tryParse(str) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { config } = await import("./config.mjs");
-  const ol = new Ollama(config.ollama);
+  const ol = new LLM(config.llm);
   const format = await ol.detectFormat();
   console.log(`Detected API format: ${format}`);
   const ok = await ol.probeToolSupport();
-  console.log(`Tool-calling support for ${config.ollama.model}: ${ok}`);
+  console.log(`Tool-calling support for ${config.llm.model}: ${ok}`);
 }

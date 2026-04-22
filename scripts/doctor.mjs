@@ -41,14 +41,21 @@ export async function run(root) {
 
   status(true, `Platform: ${IS_MACOS ? "macOS" : IS_LINUX ? "Linux" : platform()}`);
 
-  const ollamaUrl = env.OLLAMA_URL ?? "http://localhost:11434";
-  const apiFormat = env.OLLAMA_API_FORMAT ?? "auto";
-  const ol = await ollamaReachable(ollamaUrl, apiFormat);
-  status(ol.ok, `LLM reachable at ${ollamaUrl}${ol.ok ? ` (${ol.detectedFormat} API)` : ` (${ol.error})`}`);
+  const backend = (env.LLM_BACKEND ?? "ollama").toLowerCase();
+  const isMlx = backend === "mlx";
+  const defaultUrl = isMlx ? "http://localhost:8000" : "http://localhost:11434";
+  const llmUrl = env.LLM_URL ?? env.OLLAMA_URL ?? defaultUrl;
+  const apiFormat = isMlx ? "openai" : (env.LLM_API_FORMAT ?? env.OLLAMA_API_FORMAT ?? "auto");
+  status(true, `LLM backend: ${backend}`);
+  const llmApiKey = env.LLM_API_KEY ?? "";
+  const ol = await ollamaReachable(llmUrl, apiFormat, llmApiKey);
+  status(ol.ok, `LLM reachable at ${llmUrl}${ol.ok ? ` (${ol.detectedFormat} API)` : ` (${ol.error})`}`);
   if (ol.ok) {
-    const model = env.OLLAMA_MODEL ?? "gemma4:latest";
-    const hasModel = ol.models.includes(model);
-    status(hasModel, `Model "${model}" available${hasModel ? "" : ` — available models: ${ol.models.join(", ")}`}`);
+    const model = env.LLM_MODEL ?? env.OLLAMA_MODEL ?? (isMlx ? "" : "gemma4:latest");
+    if (model) {
+      const hasModel = ol.models.includes(model);
+      status(hasModel, `Model "${model}" available${hasModel ? "" : ` — available models: ${ol.models.join(", ")}`}`);
+    }
   }
 
   if (env.TELEGRAM_BOT_TOKEN) {

@@ -42,18 +42,39 @@ export async function run(root) {
     process.exit(1);
   }
 
-  const ollamaUrl = existing.OLLAMA_URL ?? "http://localhost:11434";
-  const apiFormat = existing.OLLAMA_API_FORMAT ?? "auto";
-  const ollamaResult = await ollamaReachable(ollamaUrl, apiFormat);
-  if (!ollamaResult.ok) {
-    console.log(`✗ LLM server not reachable at ${ollamaUrl}: ${ollamaResult.error}`);
-    console.log(
-      `  Install Ollama from https://ollama.com, or point OLLAMA_URL to an OpenAI-compatible server.`,
-    );
+  // --- LLM backend ---
+  const defaultBackend = existing.LLM_BACKEND ?? "ollama";
+  const backend = await p.ask("LLM backend (ollama or mlx)", {
+    default: defaultBackend,
+  });
+  const isMlx = backend.toLowerCase() === "mlx";
+  const defaultUrl = isMlx ? "http://localhost:8000" : "http://localhost:11434";
+  const llmUrl = existing.LLM_URL ?? (isMlx ? defaultUrl : (existing.OLLAMA_URL ?? defaultUrl));
+  const apiFormat = isMlx ? "openai" : (existing.LLM_API_FORMAT ?? existing.OLLAMA_API_FORMAT ?? "auto");
+
+  let llmApiKey = existing.LLM_API_KEY ?? "";
+  if (isMlx) {
+    console.log(`\n  Find your oMLX API key by clicking the oMLX icon in the menu bar, choosing Settings, and copying the key.`);
+    llmApiKey = await p.ask("oMLX API key", {
+      default: llmApiKey,
+      required: true,
+    });
+  }
+
+  const llmResult = await ollamaReachable(llmUrl, apiFormat, llmApiKey);
+  if (!llmResult.ok) {
+    console.log(`✗ LLM server not reachable at ${llmUrl}: ${llmResult.error}`);
+    if (isMlx) {
+      console.log(`  Make sure oMLX is running and the API key is correct.`);
+    } else {
+      console.log(
+        `  Install Ollama from https://ollama.com, or point LLM_URL to an OpenAI-compatible server.`,
+      );
+    }
     p.close();
     process.exit(1);
   }
-  console.log(`✓ LLM reachable at ${ollamaUrl} (${ollamaResult.detectedFormat} API, ${ollamaResult.models.length} models)`);
+  console.log(`✓ LLM reachable at ${llmUrl} (${llmResult.detectedFormat} API, ${llmResult.models.length} models)`);
 
   // --- Telegram ---
   console.log(`\n--- Telegram ---`);
@@ -92,15 +113,23 @@ export async function run(root) {
   const timezone = await p.ask("Timezone (IANA, e.g. America/New_York)", {
     default: existing.HIGGINS_TIMEZONE ?? defaultTimezone(),
   });
-  const model = await p.ask("Ollama model", {
-    default: existing.OLLAMA_MODEL ?? "gemma4:latest",
+  const savedModel = existing.LLM_MODEL ?? (isMlx ? "" : existing.OLLAMA_MODEL ?? "gemma4:latest");
+  if (llmResult.models.length) {
+    console.log(`  Available models: ${llmResult.models.join(", ")}`);
+  }
+  const defaultModel = savedModel || (llmResult.models.length === 1 ? llmResult.models[0] : "");
+  const model = await p.ask("Model" + (llmResult.models.length > 1 ? " (pick from above)" : ""), {
+    default: defaultModel,
+    required: true,
   });
 
-  if (ollamaResult.models.length && !ollamaResult.models.includes(model)) {
+  if (llmResult.models.length && !llmResult.models.includes(model)) {
     console.log(
-      `  ! Model "${model}" not found. Available: ${ollamaResult.models.join(", ")}`,
+      `  ! Model "${model}" not found. Available: ${llmResult.models.join(", ")}`,
     );
-    if (ollamaResult.detectedFormat === "ollama") {
+    if (isMlx) {
+      console.log(`    Start mlx_lm.server with: mlx_lm.server --model ${model}`);
+    } else if (llmResult.detectedFormat === "ollama") {
       console.log(`    Run \`ollama pull ${model}\` before starting Higgins.`);
     } else {
       console.log(`    Make sure the model is loaded on your OpenAI-compatible server.`);
@@ -132,9 +161,11 @@ export async function run(root) {
     TELEGRAM_BOT_TOKEN: botToken,
     TELEGRAM_ALLOWED_USER_IDS: userIds,
     TELEGRAM_PRIMARY_USER_ID: primary,
-    OLLAMA_URL: ollamaUrl,
-    OLLAMA_MODEL: model,
-    OLLAMA_API_FORMAT: apiFormat,
+    LLM_BACKEND: backend.toLowerCase(),
+    LLM_URL: llmUrl,
+    LLM_MODEL: model,
+    LLM_API_FORMAT: apiFormat,
+    LLM_API_KEY: llmApiKey,
     HIGGINS_NAME: name,
     HIGGINS_TIMEZONE: timezone,
     HIGGINS_HISTORY_TURNS: existing.HIGGINS_HISTORY_TURNS ?? "10",

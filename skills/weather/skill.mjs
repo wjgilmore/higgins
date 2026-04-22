@@ -102,15 +102,18 @@ export default {
           wind_mph: cur.wind_speed_10m,
           observed_at: cur.time,
         },
-        daily: (d.time ?? []).map((date, i) => ({
+        daily: (d.time ?? []).map((date, i) => {
+          const dayName = new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" });
+          return {
           date,
+          day_name: dayName,
           high_f: d.temperature_2m_max?.[i],
           low_f: d.temperature_2m_min?.[i],
           conditions: WMO[d.weather_code?.[i]] ?? `code ${d.weather_code?.[i]}`,
           precip_chance_pct: d.precipitation_probability_max?.[i],
           sunrise: d.sunrise?.[i],
           sunset: d.sunset?.[i],
-        })),
+        }; }),
       },
       null,
       2,

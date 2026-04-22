@@ -30,10 +30,24 @@ export const config = Object.freeze({
     ),
     primaryUserId: parseInt(required("TELEGRAM_PRIMARY_USER_ID"), 10),
   },
-  ollama: {
-    url: (process.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, ""),
-    model: process.env.OLLAMA_MODEL ?? "gemma4:latest",
-    apiFormat: process.env.OLLAMA_API_FORMAT ?? "auto",
+  llm: {
+    backend: (process.env.LLM_BACKEND ?? "ollama").toLowerCase(),
+    url: (process.env.LLM_URL ?? process.env.OLLAMA_URL ?? (
+      (process.env.LLM_BACKEND ?? "ollama").toLowerCase() === "mlx"
+        ? "http://localhost:8000"
+        : "http://localhost:11434"
+    )).replace(/\/$/, ""),
+    apiKey: process.env.LLM_API_KEY ?? "",
+    model: process.env.LLM_MODEL ?? process.env.OLLAMA_MODEL ?? (
+      (process.env.LLM_BACKEND ?? "ollama").toLowerCase() === "mlx"
+        ? ""
+        : "gemma4:latest"
+    ),
+    apiFormat: process.env.LLM_API_FORMAT ?? process.env.OLLAMA_API_FORMAT ?? (
+      (process.env.LLM_BACKEND ?? "ollama").toLowerCase() === "mlx"
+        ? "openai"
+        : "auto"
+    ),
   },
   higgins: {
     name: process.env.HIGGINS_NAME ?? "Higgins",

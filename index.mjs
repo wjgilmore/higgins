@@ -1,5 +1,5 @@
 import { config } from "./src/config.mjs";
-import { Ollama } from "./src/ollama.mjs";
+import { LLM } from "./src/ollama.mjs";
 import { Telegram } from "./src/telegram.mjs";
 import { loadSkills } from "./src/skills.mjs";
 import { History } from "./src/history.mjs";
@@ -10,10 +10,10 @@ async function main() {
   const tag = `[${config.higgins.name}]`;
   console.log(`${tag} starting...`);
 
-  const ollama = new Ollama(config.ollama);
-  const nativeTools = await ollama.probeToolSupport();
+  const llm = new LLM(config.llm);
+  const nativeTools = await llm.probeToolSupport();
   console.log(
-    `${tag} native tool-calling for ${config.ollama.model}: ${nativeTools}`,
+    `${tag} native tool-calling for ${config.llm.model}: ${nativeTools}`,
   );
 
   const skills = await loadSkills(config.paths.skills, {
@@ -34,7 +34,7 @@ async function main() {
     scheduler,
   });
 
-  const agent = new Agent({ config, ollama, skills, history, getContext });
+  const agent = new Agent({ config, llm, skills, history, getContext });
 
   scheduler = new Scheduler({
     schedulesPath: config.paths.schedules,

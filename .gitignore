@@ -1,6 +1,7 @@
 # Secrets and local config
 .env
 .env.local
+.claude/settings.local.json
 
 # Per-skill user config and data
 skills/calendar/calendars.json

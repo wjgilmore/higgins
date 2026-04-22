@@ -3,9 +3,9 @@ import { asOllamaTools } from "./skills.mjs";
 const MAX_ITERATIONS = 8;
 
 export class Agent {
-  constructor({ config, ollama, skills, history, getContext }) {
+  constructor({ config, llm, skills, history, getContext }) {
     this.config = config;
-    this.ollama = ollama;
+    this.llm = llm;
     this.skills = skills;
     this.skillsByName = new Map(skills.map((s) => [s.name, s]));
     this.history = history;
@@ -77,7 +77,7 @@ If no tool is needed, just reply in natural language (no JSON).`;
   }
 
   async runTurn({ userId, text, useHistory = true, scheduled = false }) {
-    const useNative = await this.ollama.probeToolSupport();
+    const useNative = await this.llm.probeToolSupport();
     const system = {
       role: "system",
       content: this.systemPrompt(useNative, scheduled),
@@ -97,7 +97,7 @@ If no tool is needed, just reply in natural language (no JSON).`;
 
   async loop(messages, transcript, userId, useNative) {
     for (let i = 0; i < MAX_ITERATIONS; i++) {
-      const res = await this.ollama.chat({
+      const res = await this.llm.chat({
         messages,
         tools: this.tools,
         useNative,
